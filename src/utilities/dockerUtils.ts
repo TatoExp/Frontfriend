@@ -32,12 +32,17 @@ export async function buildImage(
 }
 
 export async function stopAndRemoveContainer(containerName: string) {
-  const existingContainer = dockerClient.getContainer(containerName);
   try {
-    await existingContainer.stop();
-  } catch {}
-  await existingContainer.remove();
-  return;
+    const existingContainer = dockerClient.getContainer(containerName);
+    try {
+      await existingContainer.stop();
+    } catch {}
+    await existingContainer.remove();
+    return;
+  } catch {
+    return;
+  }
+  
 }
 
 export async function createContainer(
