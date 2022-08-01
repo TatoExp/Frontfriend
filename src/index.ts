@@ -61,6 +61,11 @@ async function bootstrap() {
     );
 
     await configureNginx(ssl, hostname, branch, port);
+
+    res.json({
+      success: true,
+      message: `Deployed at ${hostname.replace('*', branch)}`,
+    })
   });
 
   app.listen(3000, () => {
