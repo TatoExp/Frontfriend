@@ -1,5 +1,5 @@
 import Docker from 'dockerode';
-import { existsSync } from 'fs';
+import { createWriteStream, existsSync } from 'fs';
 const DockerodeCompose = require('dockerode-compose');
 
 const dockerClient = new Docker();
@@ -19,11 +19,12 @@ export async function buildImage(
   imagePath: string,
   networkName: string
 ): Promise<void> {
+  var tar = require('tar-fs')
+  const parentDir = imagePath.split('/').slice(0, -1).join('/');
+  const tarPath = parentDir + '/' + imageName + '.tar'
+  tar.pack(imagePath).pipe(createWriteStream(tarPath));
   const stream = await dockerClient.buildImage(
-    {
-      context: imagePath,
-      src: ['Dockerfile'],
-    },
+    tarPath,
     {
       t: imageName,
       networkmode: networkName,
