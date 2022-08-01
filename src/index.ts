@@ -56,8 +56,8 @@ async function bootstrap() {
     await createContainer(
       `${dockerNames}-container`,
       dockerNames,
+      repoPort,
       port,
-      repoPort
     );
 
     await configureNginx(ssl, hostname, branch, port);
