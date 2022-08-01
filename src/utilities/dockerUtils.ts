@@ -19,7 +19,7 @@ export async function buildImage(
   imagePath: string,
   networkName: string
 ): Promise<void> {
-  await dockerClient.buildImage(
+  const stream = await dockerClient.buildImage(
     {
       context: imagePath,
       src: ['Dockerfile'],
@@ -29,6 +29,9 @@ export async function buildImage(
       networkmode: networkName,
     }
   );
+  await new Promise((resolve, reject) => {
+    dockerClient.modem.followProgress(stream, (err, res) => err ? reject(err) : resolve(res));
+  });
 }
 
 export async function stopAndRemoveContainer(containerName: string) {
