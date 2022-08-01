@@ -31,6 +31,15 @@ export async function buildImage(
   );
 }
 
+export async function stopAndRemoveContainer(
+  containerName: string
+) {
+  const existingContainer = dockerClient.getContainer(containerName);
+  await existingContainer.stop();
+  await existingContainer.remove();
+  return;
+}
+
 export async function createContainer(
   containerName: string,
   imageName: string,
@@ -38,9 +47,7 @@ export async function createContainer(
   hostPort: number
 ) {
   try {
-    const existingContainer = dockerClient.getContainer(containerName);
-    await existingContainer.stop();
-    await existingContainer.remove();
+   await stopAndRemoveContainer(containerName);
   } catch {
     // container does not exist
   }
@@ -51,17 +58,18 @@ export async function createContainer(
     ExposedPorts: {
       [`${exposedPort}/tcp`]: {},
     },
+    HostConfig: {
+      PortBindings: {
+        [`${exposedPort}/tcp`]: [
+          {
+            HostPort: `${hostPort}`,
+          },
+        ],
+      }
+    }
   });
 
-  container.start({
-    PortBindings: {
-      [`${exposedPort}/tcp`]: [
-        {
-          HostPort: `${hostPort}`,
-        },
-      ],
-    },
-  });
+  await container.start();
 }
 
 export async function dockerCompose(composeFile: string, projName: string) {

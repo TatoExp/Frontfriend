@@ -13,6 +13,7 @@ import {
   createContainer,
   createNetwork,
   dockerCompose,
+  stopAndRemoveContainer,
 } from './utilities/dockerUtils';
 import { configureDockerfiles } from './utilities/configureDockerfiles';
 import { cloneRepo } from './utilities/gitUtilities';
@@ -43,10 +44,12 @@ async function bootstrap() {
     const { repoName, repoLink, port: repoPort } = repoConfig;
     const { branch } = req.params;
 
+    const dockerNames = branch + '-' + repoName;
+
+    await stopAndRemoveContainer(`${dockerNames}-container`);
     await cloneRepo(repoName, repoLink, branch);
 
     const path = process.cwd() + '/' + 'sources/' + repoName + '/' + branch;
-    const dockerNames = branch + '-' + repoName;
     const port = await getAllocatedPort(branch, repoName);
 
     await configureDockerfiles(path, repoConfig, dockerNames);
