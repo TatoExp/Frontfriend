@@ -4,7 +4,7 @@ import simpleGit from 'simple-git';
 import { validateConfig } from './configValidator';
 import { ValidationError } from 'class-validator';
 import { appendFile, writeFile } from 'fs/promises';
-import { exec } from 'child_process';
+import { execSync } from 'child_process';
 import { DataSource } from 'typeorm';
 import { AllocatedPort } from './entities/AllocatedPort';
 import { existsSync } from 'fs';
@@ -58,25 +58,13 @@ async function bootstrap() {
     );
     port = port! + 6000;
 
-    console.log('Creating');
-    await new Promise((resolve, reject) => {
-      exec(
-        `docker network create ${dockerNames}-network`,
-        { cwd: path },
-        resolve
-      );
-    });
+    console.log("Creating");
+    execSync(`docker network create ${dockerNames}-network`, { cwd: path });
 
-    console.log('Building');
-    await new Promise((resolve, reject) => {
-      exec(
-        `docker build -t ${dockerNames} -f Dockerfile .`,
-        { cwd: path },
-        resolve
-      );
-    });
+    console.log("Building");
+    execSync(`docker build -t ${dockerNames} -f Dockerfile .`, { cwd: path });
 
-    console.log('Running docker-compose');
+    console.log("Running")
     if (existsSync(path + '/docker-compose.yml')) {
       appendFile(
         path + '/docker-compose.yml',
@@ -88,20 +76,15 @@ networks:
     external: true
       `
       );
-      await new Promise((resolve, reject) => {
-        exec('docker-compose up -d', { cwd: path }, resolve);
-      });
+      execSync('docker-compose up -d', { cwd: path });
     }
 
-    console.log('Running');
-    await new Promise((resolve, reject) => {
-      exec(
-        `docker run -d -p ${port}:${repoConfig.port} --network=${dockerNames}-network --name=${dockerNames}-container ${dockerNames}`,
-        { cwd: path },
-        resolve
-      );
-    });
-
+    console.log("Running");
+    execSync(
+      `docker run -d -p ${port}:${repoConfig.port} --network=${dockerNames}-network --name=${dockerNames}-container ${dockerNames}`,
+      { cwd: path }
+    );
+    
     if (!config.ssl) {
       const nginxConfig = httpNginx(
         config.hostname.replace('*', req.params.branch),
@@ -111,16 +94,14 @@ networks:
         '/etc/nginx/sites-available/' + req.params.branch,
         nginxConfig
       );
-      exec(
+      execSync(
         'ln -s /etc/nginx/sites-available/' +
           req.params.branch +
           ' /etc/nginx/sites-enabled/' +
           req.params.branch
       );
-      exec('service nginx reload');
+      execSync('service nginx reload');
     }
-
-    res.status(200).send('Deployed');
   });
 
   app.listen(3000, () => {
