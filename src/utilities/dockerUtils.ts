@@ -28,8 +28,10 @@ export async function buildImage(
     file: tarPath,
   }, [imagePath])
 
+  const readStream = createReadStream(tarPath);
+
   const stream = await dockerClient.buildImage(
-    tarPath,
+    readStream,
     {
       t: imageName,
       networkmode: networkName,
