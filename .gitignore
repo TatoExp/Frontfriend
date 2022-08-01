@@ -1,0 +1,7 @@
+*.stackdump
+node_modules
+dist
+config.json
+config
+sources
+*.sqlite

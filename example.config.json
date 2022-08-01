@@ -1,0 +1,16 @@
+{
+	"hostname": "*.dev.mwareing.xyz",
+	"ssl": false,
+	"sslCertificate": "",
+	"sslKey": "",
+	"repos": [
+		{
+			"repoLink": "https://github.com/jatins/express-hello-world",
+			"repoName": "express-hello-world",
+			"dockerfile": "./config/Dockerfile",
+			"dockerCompose": "./config/docker-compose.yml",
+			"port": 3000
+		}
+	]
+	
+}
