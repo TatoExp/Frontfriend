@@ -2,12 +2,8 @@ import 'reflect-metadata';
 import express from 'express';
 import { validateConfig } from './configValidator';
 import { ValidationError } from 'class-validator';
-import { appendFile, writeFile } from 'fs/promises';
-import { execSync } from 'child_process';
 import { DataSource } from 'typeorm';
 import { AllocatedPort } from './entities/AllocatedPort';
-import { existsSync } from 'fs';
-import { httpNginx } from './nginx/http';
 import {
   buildImage,
   createContainer,

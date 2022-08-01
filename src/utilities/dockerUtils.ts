@@ -35,7 +35,9 @@ export async function stopAndRemoveContainer(
   containerName: string
 ) {
   const existingContainer = dockerClient.getContainer(containerName);
-  await existingContainer.stop();
+  try {
+    await existingContainer.stop();
+  } catch {};
   await existingContainer.remove();
   return;
 }
