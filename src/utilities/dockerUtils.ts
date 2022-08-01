@@ -17,7 +17,7 @@ export async function createNetwork(networkName: string) {
 export async function buildImage(
   imageName: string,
   imagePath: string,
-	networkName: string,
+  networkName: string
 ): Promise<void> {
   await dockerClient.buildImage(
     {
@@ -26,18 +26,16 @@ export async function buildImage(
     },
     {
       t: imageName,
-			networkmode: networkName,
+      networkmode: networkName,
     }
   );
 }
 
-export async function stopAndRemoveContainer(
-  containerName: string
-) {
+export async function stopAndRemoveContainer(containerName: string) {
   const existingContainer = dockerClient.getContainer(containerName);
   try {
     await existingContainer.stop();
-  } catch {};
+  } catch {}
   await existingContainer.remove();
   return;
 }
@@ -49,7 +47,7 @@ export async function createContainer(
   hostPort: number
 ) {
   try {
-   await stopAndRemoveContainer(containerName);
+    await stopAndRemoveContainer(containerName);
   } catch {
     // container does not exist
   }
@@ -67,8 +65,8 @@ export async function createContainer(
             HostPort: `${hostPort}`,
           },
         ],
-      }
-    }
+      },
+    },
   });
 
   await container.start();

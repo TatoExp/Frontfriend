@@ -28,7 +28,7 @@ async function bootstrap() {
   await dataSource.initialize();
 
   const app = express();
-  
+
   app.post('/deploy/:repo/:branch', async (req, res) => {
     const repoConfig = config.repos.find((r) => r.repoName === req.params.repo);
     if (!repoConfig) {
@@ -57,7 +57,7 @@ async function bootstrap() {
       `${dockerNames}-container`,
       dockerNames,
       repoPort,
-      port,
+      port
     );
 
     await configureNginx(ssl, hostname, branch, port);
@@ -65,16 +65,16 @@ async function bootstrap() {
     res.json({
       success: true,
       message: `Deployed at ${hostname.replace('*', branch)}`,
-    })
+    });
   });
 
   app.use((err: any, req: any, res: Response, next: any) => {
     console.log(err.stack);
     res.status(500).json({
       success: false,
-      message: err.stack
-    })
-  })
+      message: err.stack,
+    });
+  });
 
   app.listen(3000, () => {
     console.log(`Server started on port 3000`);

@@ -1,5 +1,5 @@
 export const httpNginx = (server_name: string, proxy_pass: string) => {
-	return  `
+  return `
 	server {
 		listen 80;
 		listen [::]:80;
@@ -9,5 +9,5 @@ export const httpNginx = (server_name: string, proxy_pass: string) => {
 			proxy_pass ${proxy_pass};
 		}
 	}
-	`
-}
+	`;
+};
