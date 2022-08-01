@@ -8,13 +8,12 @@ import { exec } from 'child_process';
 import { DataSource } from 'typeorm';
 import { AllocatedPort } from './entities/AllocatedPort';
 import { existsSync } from 'fs';
+import { httpNginx } from './nginx/http';
 
 const dataSource = new DataSource({
-  type: "sqlite",
-  database: "./db.sqlite",
-  entities: [
-    AllocatedPort
-  ],
+  type: 'sqlite',
+  database: './db.sqlite',
+  entities: [AllocatedPort],
   synchronize: true,
 });
 
@@ -29,14 +28,14 @@ async function bootstrap() {
   });
 
   app.post('/deploy/:repo/:branch', async (req, res) => {
-    const repoConfig = config.repos.find(r => r.repoName === req.params.repo);
+    const repoConfig = config.repos.find((r) => r.repoName === req.params.repo);
     if (!repoConfig) {
       res.status(404).send('Repo not found');
       return;
     }
 
     const options: any = {
-      "-b": null,
+      '-b': null,
     };
     options[req.params.branch] = null;
 
@@ -46,39 +45,82 @@ async function bootstrap() {
 
     path = process.cwd() + '/' + 'sources/' + path;
 
-    if(repoConfig.dockerfile) {
+    if (repoConfig.dockerfile) {
       await writeFile(path + '/Dockerfile', repoConfig.dockerfile);
     }
-    if(repoConfig.dockerCompose) {
+    if (repoConfig.dockerCompose) {
       await writeFile(path + '/docker-compose.yml', repoConfig.dockerCompose);
     }
 
     const dockerNames = req.params.branch + '-' + repoConfig.repoName;
-    let { port } = await dataSource.manager.save(new AllocatedPort(req.params.branch, repoConfig.repoName));
+    let { port } = await dataSource.manager.save(
+      new AllocatedPort(req.params.branch, repoConfig.repoName)
+    );
     port = port! + 6000;
 
-    exec(`docker network create ${dockerNames}-network`, { cwd: path });
-    exec(`docker build -t ${dockerNames} -f Dockerfile .`, { cwd: path });
+    console.log('Creating');
+    await new Promise((resolve, reject) => {
+      exec(
+        `docker network create ${dockerNames}-network`,
+        { cwd: path },
+        resolve
+      );
+    });
 
-    exec(`docker run -d -p ${port}:${repoConfig.port} --network=${dockerNames}-network --name=${dockerNames}-container ${dockerNames}`, { cwd: path });
+    console.log('Building');
+    await new Promise((resolve, reject) => {
+      exec(
+        `docker build -t ${dockerNames} -f Dockerfile .`,
+        { cwd: path },
+        resolve
+      );
+    });
 
-    if(existsSync(path + '/docker-compose.yml')) {
-      appendFile(path + '/docker-compose.yml', '\n' + `
+    console.log('Running docker-compose');
+    if (existsSync(path + '/docker-compose.yml')) {
+      appendFile(
+        path + '/docker-compose.yml',
+        '\n' +
+          `
 networks:
   default:
     name: ${dockerNames}-network
     external: true
-      `)
-      exec('docker-compose up -d', { cwd: path });
+      `
+      );
+      await new Promise((resolve, reject) => {
+        exec('docker-compose up -d', { cwd: path }, resolve);
+      });
     }
 
-    if(!config.ssl) {
-      const nginxConfig = httpNginx(config.hostname.replace('*', req.params.branch), 'http://127.0.0.1:' + port);
-      await writeFile('/etc/nginx/sites-available/' + req.params.branch, nginxConfig);
-      exec('ln -s /etc/nginx/sites-available/' + req.params.branch + ' /etc/nginx/sites-enabled/' + req.params.branch);
+    console.log('Running');
+    await new Promise((resolve, reject) => {
+      exec(
+        `docker run -d -p ${port}:${repoConfig.port} --network=${dockerNames}-network --name=${dockerNames}-container ${dockerNames}`,
+        { cwd: path },
+        resolve
+      );
+    });
+
+    if (!config.ssl) {
+      const nginxConfig = httpNginx(
+        config.hostname.replace('*', req.params.branch),
+        'http://127.0.0.1:' + port
+      );
+      await writeFile(
+        '/etc/nginx/sites-available/' + req.params.branch,
+        nginxConfig
+      );
+      exec(
+        'ln -s /etc/nginx/sites-available/' +
+          req.params.branch +
+          ' /etc/nginx/sites-enabled/' +
+          req.params.branch
+      );
       exec('service nginx reload');
     }
 
+    res.status(200).send('Deployed');
   });
 
   app.listen(3000, () => {
@@ -86,8 +128,8 @@ networks:
   });
 }
 
-bootstrap().catch(err => {
-  console.log(err)
+bootstrap().catch((err) => {
+  console.log(err);
   console.log(JSON.stringify(err));
   if (err instanceof ValidationError) {
     console.log(err.children);

@@ -1,4 +1,4 @@
-const httpNginx = (server_name: string, proxy_pass: string) => {
+export const httpNginx = (server_name: string, proxy_pass: string) => {
 	return  `
 	server {
 		listen 80;

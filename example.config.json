@@ -7,8 +7,8 @@
 		{
 			"repoLink": "https://github.com/jatins/express-hello-world",
 			"repoName": "express-hello-world",
-			"dockerfile": "./config/Dockerfile",
-			"dockerCompose": "./config/docker-compose.yml",
+			"dockerfile": false,
+			"dockerCompose": false,
 			"port": 3000
 		}
 	]
