@@ -1,6 +1,7 @@
 import Docker from 'dockerode';
 import { createReadStream, createWriteStream, existsSync } from 'fs';
-import * as tar from "tar";
+import { unlink } from 'fs/promises';
+import * as tar from 'tar';
 const DockerodeCompose = require('dockerode-compose');
 
 const dockerClient = new Docker();
@@ -9,6 +10,7 @@ export async function createNetwork(networkName: string) {
   try {
     const network = await dockerClient.createNetwork({
       Name: networkName,
+      CheckDuplicate: true,
     });
   } catch {
     // network already exists
@@ -21,24 +23,32 @@ export async function buildImage(
   networkName: string
 ): Promise<void> {
   const parentDir = imagePath.split('/').slice(0, -1).join('/');
-  const tarPath = parentDir + '/' + imageName + '.tar'
+  const tarPath = parentDir + '/' + imageName + '.tar';
 
-  await tar.c({
-    gzip: true,
-    file: tarPath,
-  }, [imagePath])
+  if (existsSync(tarPath)) {
+    await unlink(tarPath);
+  }
+
+  await tar.c(
+    {
+      gzip: true,
+      file: tarPath,
+      cwd: imagePath,
+    },
+    ['']
+  );
 
   const readStream = createReadStream(tarPath);
 
-  const stream = await dockerClient.buildImage(
-    readStream,
-    {
-      t: imageName,
-      networkmode: networkName,
-    }
-  );
-  await new Promise((resolve, reject) => {
-    dockerClient.modem.followProgress(stream, (err, res) => err ? reject(err) : resolve(res));
+  const stream = await dockerClient.buildImage(readStream, {
+    t: imageName,
+    networkmode: networkName,
+  });
+
+  const x = await new Promise((resolve, reject) => {
+    dockerClient.modem.followProgress(stream, (err, res) =>
+      err ? reject(err) : resolve(res)
+    );
   });
 }
 
@@ -53,7 +63,6 @@ export async function stopAndRemoveContainer(containerName: string) {
   } catch {
     return;
   }
-  
 }
 
 export async function createContainer(
