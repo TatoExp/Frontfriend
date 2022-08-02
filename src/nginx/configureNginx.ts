@@ -2,22 +2,37 @@ import { execSync } from 'child_process';
 import { writeFile } from 'fs/promises';
 import { fileExists } from '../utilities/fileExists';
 import { httpNginx } from './http';
+import { httpsNginx } from './https';
 
 export async function configureNginx(
   ssl: boolean,
   hostname: string,
   branch: string,
-  port: number
+  port: number,
+  sslCertPath?: string,
+  sslKeyPath?: string
 ) {
   if (await fileExists('/etc/nginx/sites-available/' + branch)) {
     return;
   }
+  let nginxConfig
   if (!ssl) {
-    const nginxConfig = httpNginx(
+    nginxConfig = httpNginx(
       hostname.replace('*', branch),
       'http://127.0.0.1:' + port
     );
-    await writeFile('/etc/nginx/sites-available/' + branch, nginxConfig);
+  } else {
+    if(!sslCertPath || !sslKeyPath) {
+      throw new Error('SSL certificate and key paths are required');
+    }
+    nginxConfig = httpsNginx(
+      hostname.replace('*', branch),
+      'http://127.0.0.1:' + port,
+      sslCertPath,
+      sslKeyPath
+    );
+  }
+  await writeFile('/etc/nginx/sites-available/' + branch, nginxConfig);
     execSync(
       'ln -s /etc/nginx/sites-available/' +
         branch +
@@ -25,5 +40,4 @@ export async function configureNginx(
         branch
     );
     execSync('service nginx reload');
-  }
 }
