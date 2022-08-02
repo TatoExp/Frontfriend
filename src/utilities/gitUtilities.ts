@@ -1,5 +1,5 @@
-import { existsSync } from 'fs';
 import simpleGit from 'simple-git';
+import { fileExists } from './fileExists';
 
 export async function cloneRepo(
   repoName: string,
@@ -13,7 +13,7 @@ export async function cloneRepo(
 
   const path = repoName + '/' + repoBranch;
 
-  if (existsSync(process.cwd() + '/' + 'sources/' + path)) {
+  if (await fileExists(process.cwd() + '/' + 'sources/' + path)) {
     const git = simpleGit({
       baseDir: process.cwd() + '/' + 'sources/' + path,
     });

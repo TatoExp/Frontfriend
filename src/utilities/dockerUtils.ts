@@ -1,7 +1,8 @@
 import Docker from 'dockerode';
-import { createReadStream, createWriteStream, existsSync } from 'fs';
+import { createReadStream } from 'fs';
 import { unlink } from 'fs/promises';
 import * as tar from 'tar';
+import { fileExists } from './fileExists';
 const DockerodeCompose = require('dockerode-compose');
 
 const dockerClient = new Docker();
@@ -25,7 +26,7 @@ export async function buildImage(
   const parentDir = imagePath.split('/').slice(0, -1).join('/');
   const tarPath = parentDir + '/' + imageName + '.tar';
 
-  if (existsSync(tarPath)) {
+  if (await fileExists(tarPath)) {
     await unlink(tarPath);
   }
 
@@ -98,7 +99,7 @@ export async function createContainer(
 }
 
 export async function dockerCompose(composeFile: string, projName: string) {
-  if (!existsSync(composeFile)) {
+  if (!await fileExists(composeFile)) {
     return;
   }
   const dockerCompose = new DockerodeCompose(

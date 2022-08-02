@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
 import { writeFile } from 'fs/promises';
+import { fileExists } from '../utilities/fileExists';
 import { httpNginx } from './http';
 
 export async function configureNginx(
@@ -9,7 +9,7 @@ export async function configureNginx(
   branch: string,
   port: number
 ) {
-  if (existsSync('/etc/nginx/sites-available/' + branch)) {
+  if (await fileExists('/etc/nginx/sites-available/' + branch)) {
     return;
   }
   if (!ssl) {
