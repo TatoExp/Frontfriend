@@ -8,11 +8,12 @@ export async function configureNginx(
   ssl: boolean,
   hostname: string,
   branch: string,
+  repoName: string,
   port: number,
   sslCertPath?: string,
   sslKeyPath?: string
 ) {
-  if (await fileExists('/etc/nginx/sites-available/' + branch)) {
+  if (await fileExists('/etc/nginx/sites-available/' + repoName + '-' + branch)) {
     return;
   }
   let nginxConfig
@@ -32,12 +33,11 @@ export async function configureNginx(
       sslKeyPath
     );
   }
-  await writeFile('/etc/nginx/sites-available/' + branch, nginxConfig);
+  await writeFile('/etc/nginx/sites-available/' + repoName + '-' + branch, nginxConfig);
     execSync(
-      'ln -s /etc/nginx/sites-available/' +
-        branch +
+      'ln -s /etc/nginx/sites-available/'  + repoName + '-' + branch +
         ' /etc/nginx/sites-enabled/' +
-        branch
+        + repoName + '-' + branch
     );
     execSync('service nginx reload');
 }
