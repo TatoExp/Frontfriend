@@ -60,7 +60,15 @@ async function bootstrap() {
       port
     );
 
-    await configureNginx(ssl, hostname, branch, repoName, port, config.sslCertificate, config.sslKey);
+    await configureNginx(
+      ssl,
+      hostname,
+      branch,
+      repoName,
+      port,
+      config.sslCertificate,
+      config.sslKey
+    );
 
     res.json({
       success: true,

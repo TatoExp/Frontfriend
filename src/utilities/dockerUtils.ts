@@ -99,7 +99,7 @@ export async function createContainer(
 }
 
 export async function dockerCompose(composeFile: string, projName: string) {
-  if (!await fileExists(composeFile)) {
+  if (!(await fileExists(composeFile))) {
     return;
   }
   const dockerCompose = new DockerodeCompose(

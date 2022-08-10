@@ -13,17 +13,19 @@ export async function configureNginx(
   sslCertPath?: string,
   sslKeyPath?: string
 ) {
-  if (await fileExists('/etc/nginx/sites-available/' + repoName + '-' + branch)) {
+  if (
+    await fileExists('/etc/nginx/sites-available/' + repoName + '-' + branch)
+  ) {
     return;
   }
-  let nginxConfig
+  let nginxConfig;
   if (!ssl) {
     nginxConfig = httpNginx(
       hostname.replace('*', branch),
       'http://127.0.0.1:' + port
     );
   } else {
-    if(!sslCertPath || !sslKeyPath) {
+    if (!sslCertPath || !sslKeyPath) {
       throw new Error('SSL certificate and key paths are required');
     }
     nginxConfig = httpsNginx(
@@ -33,11 +35,19 @@ export async function configureNginx(
       sslKeyPath
     );
   }
-  await writeFile('/etc/nginx/sites-available/' + repoName + '-' + branch, nginxConfig);
-    execSync(
-      'ln -s /etc/nginx/sites-available/'  + repoName + '-' + branch +
-        ' /etc/nginx/sites-enabled/' +
-        + repoName + '-' + branch
-    );
-    execSync('service nginx reload');
+  await writeFile(
+    '/etc/nginx/sites-available/' + repoName + '-' + branch,
+    nginxConfig
+  );
+  execSync(
+    'ln -s /etc/nginx/sites-available/' +
+      repoName +
+      '-' +
+      branch +
+      ' /etc/nginx/sites-enabled/' +
+      +repoName +
+      '-' +
+      branch
+  );
+  execSync('service nginx reload');
 }

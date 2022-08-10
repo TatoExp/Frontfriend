@@ -10,7 +10,7 @@
     "prestart": "tsc --build",
     "start": "node .",
     "dev": "tsc --build && concurrently -n node,ts \"nodemon dist/index.js\" \"tsc --watch\"",
-    "pretty": "prettier --write \"**/*.{ts}\""
+    "pretty": "prettier --write \"src/**/*.{ts}\""
   },
   "devDependencies": {
     "@types/dockerode": "^3.3.9",

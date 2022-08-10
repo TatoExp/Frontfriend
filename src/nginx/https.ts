@@ -1,4 +1,9 @@
-export const httpsNginx = (server_name: string, proxy_pass: string, certificatePath: string, keyPath: string) => {
+export const httpsNginx = (
+  server_name: string,
+  proxy_pass: string,
+  certificatePath: string,
+  keyPath: string
+) => {
   return `
 	server {
 		listen 443 ssl;
